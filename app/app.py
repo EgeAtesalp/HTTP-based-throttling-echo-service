@@ -1,13 +1,18 @@
 
 from fastapi import FastAPI
 
-from dotenv import dotenv_values
 
+from pydantic import Json
+from pydantic import BaseModel, Field, Json, PositiveInt
 import redis
+import time
+from app.Middleware.throttle import ThrottleMiddleware
 
-from app.Schemas.Schemas import RequestRate
 
 
+
+class RequestRate(BaseModel):
+    request_rate : PositiveInt
 
 
 
@@ -19,16 +24,20 @@ app = FastAPI()
 @app.on_event("startup")
 def startup_db_client():
     
-    app.r = redis.Redis(host='redis', port=6379, db=0)
+    app.r = redis.Redis(host='redis', port=6379, db=0) # change from localhost-redis
     
     app.r.set('request_rate', 5)
-    app.r.set('counter', 0)
+    app.r.set('counter', 0) 
+    app.r.set('window', time.time())
+    app.add_middleware(ThrottleMiddleware, redis = app.r)
 
 
 
+'''
 @app.on_event("shutdown")
 def shutdown_db_client():
-    app.r.close() #doldur
+    app.r.client_kill() 
+'''
 
 @app.post("/echo") 
 def echo(body: dict):
