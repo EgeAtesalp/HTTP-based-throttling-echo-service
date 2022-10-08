@@ -1,9 +1,15 @@
-from starlette.types import ASGIApp, Message, Scope, Receive, Send
+from starlette.types import ASGIApp
 from starlette.middleware.base import BaseHTTPMiddleware
 from fastapi import Request
 import redis
 import time
 from fastapi.responses import JSONResponse
+
+
+
+'''
+Throttling functionality as a middleware, implements BaseHTTPMiddleware
+'''
 
 class ThrottleMiddleware(BaseHTTPMiddleware):
     def __init__(
